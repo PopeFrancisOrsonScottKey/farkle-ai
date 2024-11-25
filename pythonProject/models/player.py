@@ -1,14 +1,10 @@
-import random
-
-
 class Player:
     total_points = 0
+    reward_points = 200
+    name = ""
 
-    def roll_dice(self, num_dice):
-        dice_results = []
-        for die in range(num_dice):
-            dice_results.append(random.randint(1, 6))
-        return dice_results
+    def __init__(self, name):
+        self.name = name
 
     def end_turn(self, turn_points, dice_left):
         global num_turns
