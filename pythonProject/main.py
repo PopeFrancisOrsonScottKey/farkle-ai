@@ -23,10 +23,12 @@ def choose_to_continue(player, dice_left, last_turn_score):
 
 
 def score(roll_result):
+    print("SCORING")
+    print(str(roll_result))
     count = Counter(roll_result)
-    print("COUNT " + str(count))
+    print(str(count))
     roll_points = 0
-    num_dice = len(count.items())
+    num_dice = len(roll_result)
     for value, freq in count.items():
         if freq == 3:
             num_dice -= freq
@@ -39,14 +41,13 @@ def score(roll_result):
             if value == 1:
                 roll_points += 1000 * (freq-3) * 2
         elif value == 1:
-            num_dice -= 1
-            roll_points += 100
+            num_dice -= freq
+            roll_points += 100 * freq
         elif value == 5:
-            num_dice -= 1
-            roll_points += 50
-        else:
-            num_dice = 0
-            return 0, num_dice
+            num_dice -= freq
+            roll_points += 50 * freq
+    if roll_points == 0:
+        num_dice = 0
     return roll_points, num_dice
 
 
@@ -59,25 +60,31 @@ def start_turn(player, dice_left, last_turn_score, first_roll):
         roll_score, dice_left_new = score(roll_result)
         print("rolled " + str(roll_score) + " now have " + str(dice_left_new) + " dice left.")
         if roll_score > 0:
-            start_turn(player, dice_left_new, roll_score, False)
+            current_turn_score += roll_score
+            print(str(current_turn_score) + " current score")
+            return start_turn(player, dice_left_new, current_turn_score, False)
         else:
             print("Farkle with all dice, nice")
+            current_turn_score = 0
             return 0, 0
-
     else:
         if first_roll or choose_to_continue(player, dice_left, last_turn_score):
-            print("Might be first roll " + first_roll + " or chose to continue.")
+            print("Might be first roll " + str(first_roll) + " or chose to continue.")
             roll_result = roll_dice(dice_left)
             roll_score, dice_left_new = score(roll_result)
-            print("rolled " + str( roll_score) + " and now have " + str(dice_left_new) + " dice left")
+            print("rolled " + str(roll_score) + " and now have " + str(dice_left_new) + " dice left")
             if roll_score > 0:
                 current_turn_score += roll_score
-                start_turn(player, dice_left_new, current_turn_score, False)
+                print(str(current_turn_score) + " current score")
+                return start_turn(player, dice_left_new, current_turn_score, False)
             else:
                 print("Farkle")
+                current_turn_score = 0
                 return 0, 0
         else:
-            return current_turn_score, dice_left
+            passing_score = current_turn_score
+            current_turn_score = 0
+            return passing_score, dice_left
 
 
 # Press the green button in the gutter to run the script.
@@ -94,6 +101,7 @@ if __name__ == '__main__':
     while no_winner:
         for player in players:
             result, dice_left = start_turn(player, dice_left, 0, True)
+            print("player " + player.name + " turn over " + str(result) + " <- score--- dice left ->" + str(dice_left))
             player.total_points += result
             player.reward_points += result
             if result == 0:
