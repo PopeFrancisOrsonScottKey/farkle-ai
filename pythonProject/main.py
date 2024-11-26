@@ -54,7 +54,7 @@ def score(roll_result):
 def start_turn(player, dice_left, last_turn_score, first_roll):
     print("player " + player.name + " rolling.")
     global current_turn_score
-    if dice_left == 0:
+    if dice_left == 0 or (player.total_points < 650 and first_roll):
         print("rolling all dice")
         roll_result = roll_dice(6)
         roll_score, dice_left_new = score(roll_result)
@@ -102,8 +102,11 @@ if __name__ == '__main__':
         for player in players:
             result, dice_left = start_turn(player, dice_left, 0, True)
             print("player " + player.name + " turn over " + str(result) + " <- score--- dice left ->" + str(dice_left))
-            player.total_points += result
-            player.reward_points += result
+            if player.total_points > 650 or result >= 650:
+                player.total_points += result
+                player.reward_points += result
+            elif player.total_points <= 650 and result < 650:
+                player.reward_points -= 20
             if result == 0:
                 player.reward_points -= 20
             if player.total_points >= 10000:
