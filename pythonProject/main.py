@@ -31,21 +31,22 @@ def score(roll_result):
     num_dice = len(roll_result)
     for value, freq in count.items():
         if freq == 3:
-            num_dice -= freq
             if value == 1:
                 roll_points += 1000
+                num_dice -= freq
             else:
                 roll_points += 100*value
+                num_dice -= freq
         elif freq > 3:
-            num_dice -= freq
             if value == 1:
                 roll_points += 1000 * (freq-3) * 2
+                num_dice -= freq
         elif value == 1:
-            num_dice -= freq
             roll_points += 100 * freq
-        elif value == 5:
             num_dice -= freq
+        elif value == 5:
             roll_points += 50 * freq
+            num_dice -= freq
     if roll_points == 0:
         num_dice = 0
     return roll_points, num_dice
