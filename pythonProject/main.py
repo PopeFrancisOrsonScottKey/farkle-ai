@@ -22,31 +22,55 @@ def choose_to_continue(player, dice_left, last_turn_score):
     return player.reward_points > last_turn_score * 1 / dice_left
 
 
-def score(roll_result):
+# TODO Force to take one
+# rather than playing a guessing game of do I want to take this one
+# all information should be provided before making a decision
+def score(roll_result, player):
     print("SCORING")
     print(str(roll_result))
     count = Counter(roll_result)
     print(str(count))
     roll_points = 0
+    taken_dice = 0
     num_dice = len(roll_result)
+    must_take_all = False
+    possible_dice = 0
+    # checking if all dice have points
+    for value, freq in count.items():
+        if value == 1 or value == 5 or freq >= 3:
+            possible_dice += freq
+    if possible_dice >= num_dice:
+        must_take_all = True
+
+    # adding score
     for value, freq in count.items():
         if freq == 3:
             if value == 1:
-                roll_points += 1000
-                num_dice -= freq
+                possible_value = 1000
+                if must_take_all or possible_value / (7-num_dice) > player.reward_points:
+                    roll_points += possible_value
+                    num_dice -= freq
             else:
-                roll_points += 100*value
-                num_dice -= freq
+                possible_value = 100*value
+                if must_take_all or possible_value / (7 - num_dice) > player.reward_points:
+                    roll_points += possible_value
+                    num_dice -= freq
         elif freq > 3:
             if value == 1:
-                roll_points += 1000 * (freq-3) * 2
-                num_dice -= freq
+                possible_value = 1000 * (freq-3) * 2
+                if must_take_all or possible_value / (7 - num_dice) > player.reward_points:
+                    roll_points += possible_value
+                    num_dice -= freq
         elif value == 1:
-            roll_points += 100 * freq
-            num_dice -= freq
+            possible_value = 100 * freq
+            if must_take_all or possible_value / (7 - num_dice) > player.reward_points:
+                roll_points += possible_value
+                num_dice -= freq
         elif value == 5:
-            roll_points += 50 * freq
-            num_dice -= freq
+            possible_value = 50 * freq
+            if must_take_all or possible_value / (7 - num_dice) > player.reward_points:
+                roll_points += possible_value
+                num_dice -= freq
     if roll_points == 0:
         num_dice = 0
     return roll_points, num_dice
@@ -58,7 +82,7 @@ def start_turn(player, dice_left, last_turn_score, first_roll):
     if dice_left == 0 or (player.total_points < 650 and first_roll):
         print("rolling all dice")
         roll_result = roll_dice(6)
-        roll_score, dice_left_new = score(roll_result)
+        roll_score, dice_left_new = score(roll_result, player)
         print("rolled " + str(roll_score) + " now have " + str(dice_left_new) + " dice left.")
         if roll_score > 0:
             current_turn_score += roll_score
@@ -72,7 +96,7 @@ def start_turn(player, dice_left, last_turn_score, first_roll):
         if first_roll or choose_to_continue(player, dice_left, last_turn_score):
             print("Might be first roll " + str(first_roll) + " or chose to continue.")
             roll_result = roll_dice(dice_left)
-            roll_score, dice_left_new = score(roll_result)
+            roll_score, dice_left_new = score(roll_result, player)
             print("rolled " + str(roll_score) + " and now have " + str(dice_left_new) + " dice left")
             if roll_score > 0:
                 current_turn_score += roll_score
@@ -103,6 +127,7 @@ if __name__ == '__main__':
         for player in players:
             result, dice_left = start_turn(player, dice_left, 0, True)
             print("player " + player.name + " turn over " + str(result) + " <- score--- dice left ->" + str(dice_left))
+            print("total player score: " + str(player.total_points))
             if player.total_points > 650 or result >= 650:
                 player.total_points += result
                 player.reward_points += result
